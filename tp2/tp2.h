@@ -281,6 +281,26 @@ template<typename T>
 List<T> &List<T>::operator=(const List<T> &other) {
     // TODO: reemplazar la lista actual con una copia independiente de other
     // La memoria anterior no debe perderse, sino liberarse correctamente
+    if (this == &other){
+        return *this;
+    }
+
+    List<T>::Node *actual = head;
+    while (actual != nullptr) {
+        List<T>::Node *siguiente = actual ->next;
+        delete actual;
+        actual = siguiente;
+    }
+    head = nullptr;
+    tail = nullptr;
+    size = 0;
+
+    List<T>::Node *nodo_other = other.head;
+    while (nodo_other != nullptr) { 
+        insert_tail(nodo_other->value);
+        nodo_other = nodo_other->next;
+    }
+    return *this;
 }
 
 template<typename T>
@@ -290,8 +310,10 @@ List<T>::~List() {
 
 template<typename T>
 bool List<T>::is_empty() const {
-    // TODO: devolver si la lista está vacía.
-    return true;
+    if(size == 0){
+        return true;
+    }
+    return false;
 }
 
 template<typename T>
@@ -304,6 +326,18 @@ template<typename T>
 void List<T>::insert_head(const T& value) {
     // TODO: reservar un nodo con new, enlazarlo al principio y
     // actualizar head/tail/size.
+    List<T>::Node *nuevo = new Node(value);
+    nuevo->prev = nullptr;
+    nuevo->next = head;
+    if (is_empty()){
+        tail = nuevo;
+    } else{
+        head->prev = nuevo;
+    }
+
+    head = nuevo;
+    size++;
+
 }
 
 template<typename T>
@@ -315,6 +349,20 @@ void List<T>::insert_tail(const T& value) {
 template<typename T>
 T List<T>::pop_head() {
     // TODO: sacar el primer nodo (con delete), devolver su valor.
+    List<T>::Node *viejo_head = head;
+    T value = viejo_head->value;
+
+    head = viejo_head->next;
+    if (head != nullptr){
+        head->prev = nullptr;
+    }else{
+        tail = nullptr;
+    }
+
+    delete viejo_head;
+    size--;
+    return value;
+
 }
 
 template<typename T>
@@ -325,6 +373,9 @@ T List<T>::pop_tail() {
 template<typename T>
 const T& List<T>::peek_head() const {
     // TODO: devolver el valor del principio.
+    if (size > 0) {
+        return head->value;
+    }
 }
 
 template<typename T>
