@@ -373,9 +373,7 @@ T List<T>::pop_tail() {
 template<typename T>
 const T& List<T>::peek_head() const {
     // TODO: devolver el valor del principio.
-    if (size > 0) {
-        return head->value;
-    }
+    return head->value;
 }
 
 template<typename T>
