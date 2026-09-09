@@ -355,6 +355,7 @@ void List<T>::insert_head(const T& value) {
 
 }
 
+
 template<typename T>
 void List<T>::insert_tail(const T& value) {
     // TODO: reservar un nodo con new, enlazarlo al final y
