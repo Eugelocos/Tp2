@@ -424,6 +424,7 @@ const T& List<T>::peek_tail() const {
 template <typename T>
 typename List<T>::ListIter List<T>::create_head() {
     // TODO: retornar un iterador parado en el principio de la lista.
+    return List<T>::ListIter(this, head);
 }
 
 template <typename T>
@@ -457,7 +458,11 @@ bool List<T>::ListIter::forward() {
 template <typename T>
 bool List<T>::ListIter::backward() {
     // TODO: retroceder una posición si se puede.
+     if (curr == nullptr || curr->prev == nullptr) {
     return false;
+     }
+     curr = curr->prev;
+     return true;
 }
 
 template <typename T>
@@ -469,13 +474,16 @@ const T&  List<T>::ListIter::peek_current() const {
 template <typename T>
 bool List<T>::ListIter::at_last() const {
     // TODO: devolver si el iterador está en el último elemento.
+    if (curr == list->tail){
+        return true;
+    }
     return false;
 }
 
 template <typename T>
 bool List<T>::ListIter::at_first() const {
     // TODO: devolver si el iterador está en el primer elemento.
-    if (this->curr->prev == nullptr) {
+    if (curr == list->head){
         return true;
     }
     return false;
@@ -484,7 +492,22 @@ bool List<T>::ListIter::at_first() const {
 template <typename T>
 bool List<T>::ListIter::insert_after(const T&value) {
     // TODO: insertar un valor detrás del actual con new.
-    return false;
+    if (list->is_empty()) {
+        list->insert_head(value);
+        curr = list->head;
+        return true;
+    }
+    List<T>::Node *nuevo = new Node(value);
+    nuevo->prev = curr;
+    nuevo->next = curr->next;
+
+    if(curr->next != nullptr){
+        curr->next->prev = nuevo;
+    } else { 
+        list->tail = nuevo;
+    }
+    curr->next = nuevo;
+    list->size++;
 }
 
 template <typename T>
