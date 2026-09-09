@@ -279,7 +279,7 @@ List<T>::List(const List<T> &other) {
     this->tail = nullptr;
     this->size = 0;
 
-    Nodo* nodo_actual = other.head;
+    List<T>::Node* nodo_actual = other.head;
     while (nodo_actual != nullptr) {
         this->insert_tail(nodo_actual->value);
         nodo_actual = nodo_actual->next;
@@ -315,12 +315,15 @@ List<T> &List<T>::operator=(const List<T> &other) {
 template<typename T>
 List<T>::~List() {
     // TODO: liberar todos los nodos que queden con delete.
-    List<T>::Node* nodo_actual = this->tail;
-    while (nodo_actual->next != nullptr) {
+    List<T>::Node* nodo_actual = this->head;
+    while (nodo_actual != nullptr) {
         List<T>::Node* nodo_sig = nodo_actual->next;
         delete nodo_actual;
         nodo_actual = nodo_sig;
     }
+
+    this->head = nullptr;
+    this->tail = nullptr;
 }
 
 template<typename T>
@@ -395,7 +398,7 @@ template<typename T>
 T List<T>::pop_tail() {
     // TODO: sacar el último nodo (con delete), devolver su valor.
     T valor = this->tail->value;
-    List<T>::Node nodo_a_borrar = this->tail;
+    List<T>::Node* nodo_a_borrar = this->tail;
     
     if (this->head == this->tail) {
         this->head = nullptr;
@@ -448,7 +451,7 @@ List<T>::ListIter::ListIter(List *list, List::Node *start) {
 template <typename T>
 bool List<T>::ListIter::forward() {
     // TODO: avanzar una posición si se puede.
-    if (this->curr != nullptr || this->curr->next != nullptr) {
+    if (this->curr != nullptr && this->curr->next != nullptr  && this->curr != list->tail) {
         this->curr = this->curr->next;
         return true;
     }
@@ -458,11 +461,11 @@ bool List<T>::ListIter::forward() {
 template <typename T>
 bool List<T>::ListIter::backward() {
     // TODO: retroceder una posición si se puede.
-     if (curr == nullptr || curr->prev == nullptr) {
+    if (this->curr != nullptr && this->curr->next != nullptr && this->curr != list->head) {
+        this->curr = this->curr->next;
+        return true;
+    }
     return false;
-     }
-     curr = curr->prev;
-     return true;
 }
 
 template <typename T>
@@ -508,16 +511,26 @@ bool List<T>::ListIter::insert_after(const T&value) {
     }
     curr->next = nuevo;
     list->size++;
+    return true;
 }
 
 template <typename T>
 bool List<T>::ListIter::insert_before(const T&value) {
     // TODO: insertar un valor delante del actual con new.
-
-    List<T>::Node* nuevo = new List<T>::Node(v)
+    if (this->curr == nullptr) return false;
+    
+    List<T>::Node* nuevo = new List<T>::Node(value);
     nuevo->next = curr;
     nuevo->prev = curr->prev;
+    
+    if (curr->prev != nullptr) {
+        curr->prev->next = nuevo;
+    } else {
+        this->list->head = nuevo; 
+    }
+    
     curr->prev = nuevo;
+    this->list->size++;
     return true;
 }
 
@@ -532,17 +545,30 @@ T List<T>::ListIter::remove() {
     if (this->curr != nullptr) {
 
         List<T>::Node* nodo_a_borrar = this->curr;
-        if (this->curr->prev) {
-            this->curr = nodo_a_borrar->prev;   // <<< como este en el primer condicional, si se cunple que tiene previo ejecutra esto y no lo otro.
+        if (list->size <= 1) {
+            delete nodo_a_borrar;
+            list->head = nullptr;
+            list->tail = nullptr;
+        }
+
+        if (nodo_a_borrar == list->head){
+            this->curr = this->curr->next;
+            this->curr->prev = nullptr;
+            list->head = this->curr;
+        }
+        else if (nodo_a_borrar == list->tail) {
+            this->curr = this->curr->prev;
+            this->curr->next = nullptr;
+            list->tail = this->curr; 
+        }
+        else {
+            this->curr = this->curr->prev;
             this->curr->next = nodo_a_borrar->next;
             nodo_a_borrar->next->prev = this->curr;
-        } else if (this->curr->next) {
-            this->curr = nodo_a_borrar->prev;
-            this->curr->prev = nodo_a_borrar->prev;
-            nodo_a_borrar->prev->next = this->curr;
-        } 
-        T valor = nodo_a_borrar->value;
+        }
+        T value = nodo_a_borrar->value;
         delete nodo_a_borrar;
+        list->size--;
         return value;
     }
     return NULL;
