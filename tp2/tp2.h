@@ -368,10 +368,11 @@ void List<T>::insert_tail(const T& value) {
     if (this->tail == nullptr) {
         this->head = nodo_nuevo;
         this->tail = nodo_nuevo;
+    } else {
+        this->tail->next = nodo_nuevo;
+        nodo_nuevo->prev = this->tail;
+        this->tail = nodo_nuevo;
     }
-    this->tail->next = nodo_nuevo;
-    nodo_nuevo->prev = this->tail;
-    this->tail = nodo_nuevo;
     size++;
 }
 
@@ -462,7 +463,7 @@ template <typename T>
 bool List<T>::ListIter::backward() {
     // TODO: retroceder una posición si se puede.
     if (this->curr != nullptr && this->curr->next != nullptr && this->curr != list->head) {
-        this->curr = this->curr->next;
+        this->curr = this->curr->prev;
         return true;
     }
     return false;
@@ -517,7 +518,11 @@ bool List<T>::ListIter::insert_after(const T&value) {
 template <typename T>
 bool List<T>::ListIter::insert_before(const T&value) {
     // TODO: insertar un valor delante del actual con new.
-    if (this->curr == nullptr) return false;
+    if (list->is_empty()) {
+        list->insert_head(value);
+        curr = list->head;
+        return true;
+    }
     
     List<T>::Node* nuevo = new List<T>::Node(value);
     nuevo->next = curr;
@@ -539,16 +544,14 @@ T List<T>::ListIter::remove() {
     // TODO: sacar el nodo actual (con delete), reposicionar el iterador
     // y devolver el valor que tenía.
 
-
-    // IMPLEMENTAICON RESPOSICIONANDO 
-    // EL NODO ACUTAL DEL ITERADOR EN EL ANTERIOR DEL ACTUAL QUE FUE BORRADO como prioridad, en caso de que no tenga previo, va al siguiente
-    if (this->curr != nullptr) {
-
         List<T>::Node* nodo_a_borrar = this->curr;
+        T value = nodo_a_borrar->value;
+
         if (list->size <= 1) {
             delete nodo_a_borrar;
             list->head = nullptr;
             list->tail = nullptr;
+            return value;
         }
 
         if (nodo_a_borrar == list->head){
@@ -562,16 +565,13 @@ T List<T>::ListIter::remove() {
             list->tail = this->curr; 
         }
         else {
-            this->curr = this->curr->prev;
-            this->curr->next = nodo_a_borrar->next;
-            nodo_a_borrar->next->prev = this->curr;
+            this->curr = this->curr->next;
+            this->curr->prev = nodo_a_borrar->prev;
+            nodo_a_borrar->prev->next = this->curr;
         }
-        T value = nodo_a_borrar->value;
         delete nodo_a_borrar;
         list->size--;
         return value;
-    }
-    return NULL;
 }
 
 #endif // TP2_H
